@@ -19,3 +19,28 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-api:2.26.1")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
 }
+
+application {
+    mainClass.set("com.aggregator.Main")
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "com.aggregator.Main"
+    }
+}
+
+tasks.shadowJar {
+    archiveBaseName.set("api-aggregator")
+    archiveClassifier.set("all")
+    archiveVersion.set(project.version.toString())
+    mergeServiceFiles()
+}
+
+tasks.build {
+    dependsOn(tasks.shadowJar)
+}

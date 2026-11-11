@@ -41,16 +41,29 @@ public abstract class ApiSource {
     public List<DataItem> fetch(Map<String, String> params) throws ApiException {
         Logger log = LoggerFactory.getLogger(getClass());
         String url = buildUrl(params);
-        log.info("[START] {} params={}", getName(), params);
+        String formattedParams = formatParams(params);
+        log.info("[START] {} {}", getName(), formattedParams);
         try {
             String body = httpClient.get(url);
             Object parsed = apiMapper.readValue(body, Object.class);
             List<DataItem> items = dataMapper.map(parsed, getName(), params);
-            log.info("[END] {} params={} OK items={}", getName(), params, items.size());
+            log.info("[END] {} {} OK items={}", getName(), formattedParams, items.size());
             return items;
         } catch (HttpException | JsonProcessingException e) {
-            log.warn("[END] {} params={} FAIL: {}", getName(), params, e.getMessage());
+            log.warn("[END] {} {} ERROR: {}", getName(), formattedParams, e.getMessage());
             throw new ApiException("Failed to fetch " + getName(), e);
+        } catch (RuntimeException e) {
+            log.error("[END] {} {} ERROR: {}", getName(), formattedParams, e.getMessage());
+            throw new ApiException("Failed to process " + getName(), e);
         }
+    }
+
+    private String formatParams(Map<String, String> params) {
+        if (params.isEmpty()) {
+            return "(no params)";
+        }
+        return params.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(" "));
     }
 }

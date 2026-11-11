@@ -1,6 +1,6 @@
 plugins {
-    application
-    id("com.gradleup.shadow") version "9.0.0"
+    java
+    id("org.springframework.boot") version "4.0.5"
 }
 
 group = "com.aggregator"
@@ -10,37 +10,29 @@ repositories {
     mavenCentral()
 }
 
+configurations.configureEach {
+    exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+}
+
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:4.0.5"))
+
+    implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+
     implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
     implementation("org.apache.commons:commons-csv:1.10.0")
-    implementation("org.slf4j:slf4j-api:2.0.13")
-    runtimeOnly("org.apache.logging.log4j:log4j-core:2.25.4")
-    runtimeOnly("org.apache.logging.log4j:log4j-api:2.26.1")
-    runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
 }
 
-application {
-    mainClass.set("com.aggregator.Main")
+springBoot {
+    mainClass.set("com.aggregator.AggregatorApplication")
 }
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 
-tasks.jar {
-    manifest {
-        attributes["Main-Class"] = "com.aggregator.Main"
-    }
-}
-
-tasks.shadowJar {
-    archiveBaseName.set("api-aggregator")
-    archiveClassifier.set("all")
-    archiveVersion.set(project.version.toString())
-    mergeServiceFiles()
-}
-
-tasks.build {
-    dependsOn(tasks.shadowJar)
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+    archiveFileName.set("api-aggregator.jar")
 }

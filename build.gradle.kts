@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
     id("org.springframework.boot") version "4.0.5"
 }
 
@@ -23,6 +24,13 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.22.4")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.0")
     implementation("org.apache.commons:commons-csv:1.10.0")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+}
+
+jacoco {
+    toolVersion = "0.8.16"
 }
 
 springBoot {
@@ -35,4 +43,34 @@ tasks.withType<JavaCompile> {
 
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     archiveFileName.set("api-aggregator.jar")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.test)
+    violationRules {
+        rule {
+            limit {
+                counter = "LINE"
+                value = "COVEREDRATIO"
+                minimum = "0.70".toBigDecimal()
+            }
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }

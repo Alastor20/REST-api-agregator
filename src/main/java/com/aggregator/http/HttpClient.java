@@ -10,7 +10,11 @@ public class HttpClient {
     private final java.net.http.HttpClient client;
 
     public HttpClient() {
-        this.client = java.net.http.HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
+        this(java.net.http.HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build());
+    }
+
+    HttpClient(java.net.http.HttpClient client) {
+        this.client = client;
     }
 
     public String get(String url) throws HttpException {
